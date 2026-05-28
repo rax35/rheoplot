@@ -1,43 +1,110 @@
-import Plot from "react-plotly.js";
-import type { Data, Layout } from "plotly.js";
+import type { EChartsOption } from "echarts";
 import type { GraphData } from "./common";
+import EChartsReact from "echarts-for-react";
+import type { SeriesOption } from "echarts";
 
 interface PlotProps {
   graphData: GraphData | null;
 }
 
 export default function RheologyPlot({ graphData }: PlotProps) {
-  if (!graphData) return <p>No graph data</p>;
+  if (!graphData || graphData.length === 0) return <p>No graph data</p>;
 
-  console.log(graphData);
-  console.log(Array.isArray(graphData));
-  const traces: Data[] = graphData.map((fluid) => ({
-    x: fluid.points.map((p) => p.shearRate),
-    y: fluid.points.map((p) => p.shearStress),
-    type: "scatter",
-    mode: "lines+markers",
+  const series: SeriesOption[] = graphData.map((fluid) => ({
     name: fluid.fluidName,
+    type: "scatter",
+    smooth: false,
+    symbolSize: 8,
+    data: fluid.experimentalPoints.map((point) => [
+      point.shearRate,
+      point.shearStress,
+    ]),
   }));
 
-  const layout: Partial<Layout> = {
-    title: { text: "Rheogram" },
+  graphData.forEach((fluid) => {
+    if (!fluid.fittedPoints) return;
+    series.push({
+      name: fluid.fluidName + " HB Fit",
 
-    xaxis: {
-      title: { text: "Shear Rate" },
+      type: "line",
+
+      smooth: true,
+
+      symbol: "none",
+
+      data: fluid.fittedPoints,
+    });
+  });
+
+  const options: EChartsOption = {
+    title: {
+      text: "Rheogram",
     },
 
-    yaxis: {
-      title: { text: "Shear Stress" },
+    tooltip: {
+      trigger: "axis",
     },
 
-    autosize: true,
+    legend: {
+      orient: "vertical",
+      right: 10,
+      top: "center",
+    },
 
-    height: 500,
+    toolbox: {
+      feature: {
+        saveAsImage: {},
+        dataZoom: {},
+        restore: {},
+      },
+    },
+
+    xAxis: {
+      type: "value",
+
+      name: "Shear Rate (sec⁻¹)",
+
+      nameLocation: "middle",
+
+      nameGap: 30,
+    },
+
+    yAxis: {
+      type: "value",
+
+      name: "Shear Stress lb/100ft²",
+
+      nameLocation: "middle",
+
+      nameGap: 50,
+    },
+
+    dataZoom: [
+      {
+        type: "inside",
+      },
+    ],
+
+    series,
   };
 
   return (
-    <>
-      <Plot data={traces} layout={layout} />
-    </>
+    <div
+      className="chart-container"
+      style={{
+        width: "100%",
+        height: "500px",
+      }}
+    >
+      <EChartsReact
+        option={options}
+        theme={"dark"}
+        notMerge={true}
+        style={{
+          width: "100%",
+          height: "100%",
+        }}
+      />
+    </div>
   );
 }

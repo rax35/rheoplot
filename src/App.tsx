@@ -12,6 +12,7 @@ import {
   type GraphData,
 } from "./common";
 import RheologyPlot from "./RheologyPlot";
+import { fitHerschelBulkley, generateHBModelCurve } from "./regression";
 
 const loadSavedData = () => {
   try {
@@ -38,20 +39,35 @@ function createFluid(name: string): FluidData {
 
 const exportGraphData = (fluids: FluidData[], rpms: number[]): GraphData => {
   const result = fluids.map((fluid) => {
+    const fluidName = fluid.name;
+
+    const experimentalPoints = rpms
+      .filter((rpm) => fluid.dialReadings[rpm] != null)
+      .map((rpm) => {
+        const dial = fluid.dialReadings[rpm];
+
+        return {
+          shearRate: +(rpm * SHEAR_RATE_FACTOR).toFixed(2),
+
+          shearStress: +(dial * SHEAR_STRESS_FACTOR).toFixed(2),
+        };
+      });
+
+    let fitParams;
+    let fittedPoints;
+    if (experimentalPoints.length > 2) {
+      fitParams = fitHerschelBulkley(experimentalPoints);
+      if (fitParams) {
+        fittedPoints = generateHBModelCurve(experimentalPoints, fitParams);
+        fluid.fitParams = fitParams;
+      }
+    }
+
     return {
-      fluidName: fluid.name,
-
-      points: rpms
-        .filter((rpm) => fluid.dialReadings[rpm] != null)
-        .map((rpm) => {
-          const dial = fluid.dialReadings[rpm];
-
-          return {
-            shearRate: +(rpm * SHEAR_RATE_FACTOR).toFixed(2),
-
-            shearStress: +(dial * SHEAR_STRESS_FACTOR).toFixed(2),
-          };
-        }),
+      fluidName,
+      experimentalPoints,
+      fittedPoints,
+      fitParams,
     };
   });
 
@@ -210,6 +226,15 @@ function App() {
               >
                 Remove
               </button>
+              <br />
+
+              <label>
+                Tau0: {fluid.fitParams?.tau0.toFixed(4)}
+                <br />
+                K: {fluid.fitParams?.K.toFixed(4)}
+                <br />
+                n: {fluid.fitParams?.n.toFixed(4)}
+              </label>
             </div>
           ))}
         </div>

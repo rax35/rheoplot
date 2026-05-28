@@ -9,6 +9,7 @@ export interface FluidData {
   id: ReturnType<Crypto["randomUUID"]>;
   name: string;
   dialReadings: Record<number, number>;
+  fitParams?: HerschelBulkleyFitParams;
 }
 
 export interface SaveData {
@@ -16,10 +17,20 @@ export interface SaveData {
   fluids: FluidData[];
 }
 
+export interface DataPoint {
+  shearRate: number;
+  shearStress: number;
+}
+
+export interface HerschelBulkleyFitParams {
+  tau0: number;
+  K: number;
+  n: number;
+}
+
 export type GraphData = {
   fluidName: string;
-  points: {
-    shearRate: number;
-    shearStress: number;
-  }[];
+  experimentalPoints: DataPoint[];
+  fittedPoints?: number[][];
+  fitParams?: HerschelBulkleyFitParams;
 }[];
