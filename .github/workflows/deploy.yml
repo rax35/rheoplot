@@ -2,7 +2,7 @@ name: Deploy to Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 jobs:
@@ -10,22 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-    - name: Use Node.js 24.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 24.x
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-    - name: Build
-      run: |
-        yarn install
-        yarn build
+      - name: Build
+        run: |
+          yarn install
+          yarn build
 
-    - name: Upload Built Files
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: dist/
+      - name: Upload Built Files
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/
 
   deploy:
     needs: build
@@ -42,4 +44,4 @@ jobs:
     steps:
       - name: Deploy to Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
