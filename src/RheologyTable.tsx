@@ -1,62 +1,29 @@
 import HotTable from "@handsontable/react-wrapper";
 import "./RheologyTable.css";
 import { registerAllModules } from "handsontable/registry";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef } from "react";
 import type { Events } from "handsontable";
+import {
+  SHEAR_RATE_FACTOR,
+  SHEAR_STRESS_FACTOR,
+  type FluidData,
+} from "./common";
 
 registerAllModules();
 
-const SHEAR_RATE_FACTOR = 1.023;
-const SHEAR_STRESS_FACTOR = 1.065;
-
-const STORAGE_KEY = "rheology-table";
-
-const initialRpms = [3, 6, 100, 200, 300, 600];
-
-interface fluidData {
-  id: ReturnType<Crypto["randomUUID"]>;
-  name: string;
-  dialReadings: Record<number, number>;
+interface TableProps {
+  rpms: number[];
+  fluids: FluidData[];
+  setFluids: React.Dispatch<React.SetStateAction<FluidData[]>>;
+  removeRpm: (rpmToRemove: number) => void;
 }
-
-function createFluid(name: string): fluidData {
-  return {
-    id: crypto.randomUUID(),
-    name,
-    dialReadings: {},
-  };
-}
-
-interface saveData {
-  rpms: [number];
-  fluids: fluidData[];
-}
-
-const loadSavedData = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (!saved) {
-      return null;
-    }
-
-    return JSON.parse(saved) as saveData;
-  } catch (err) {
-    console.error(err);
-    return null;
-  }
-};
-
-export default function RheologyTable() {
+export default function RheologyTable({
+  rpms,
+  fluids,
+  setFluids,
+  removeRpm,
+}: TableProps) {
   const hotRef = useRef(null);
-
-  const savedData = loadSavedData();
-
-  const [rpms, setRpms] = useState(savedData?.rpms ?? initialRpms);
-
-  const [fluids, setFluids] = useState(
-    () => savedData?.fluids ?? [createFluid("Water")],
-  );
 
   const tableData = useMemo(() => {
     return rpms.map((rpm) => {
@@ -163,162 +130,9 @@ export default function RheologyTable() {
     });
   };
 
-  const addFluid = () => {
-    setFluids((prevFluids) => [
-      ...prevFluids,
-      createFluid(`Fluid ${prevFluids.length + 1}`),
-    ]);
-  };
-
-  const removeFluid = (fluidID: ReturnType<Crypto["randomUUID"]>) => {
-    setFluids((prev) => prev.filter((fluid) => fluid.id !== fluidID));
-  };
-
-  const addRpm = () => {
-    const value = prompt("Enter RPM");
-
-    if (!value) return;
-
-    const rpm = Number(value);
-
-    if (Number.isNaN(rpm)) {
-      alert("Invalid RPM");
-      return;
-    }
-
-    setRpms((prevRpms) => [...prevRpms, rpm].sort((a, b) => a - b));
-  };
-
-  const removeRpm = (rpmToRemove: number) => {
-    // Remove RPM row
-    setRpms((prev) => prev.filter((rpm) => rpm !== rpmToRemove));
-
-    // Remove readings tied to that RPM
-    setFluids((prevFluids) =>
-      prevFluids.map((fluid) => {
-        const updatedReadings = {
-          ...fluid.dialReadings,
-        };
-
-        delete updatedReadings[rpmToRemove];
-
-        return {
-          ...fluid,
-          dialReadings: updatedReadings,
-        };
-      }),
-    );
-  };
-
-  const updateFluidName = (index: number, value: string) => {
-    setFluids((prevFluids) => {
-      const copy = [...prevFluids];
-
-      copy[index] = {
-        ...copy[index],
-        name: value,
-      };
-
-      return copy;
-    });
-  };
-
-  const exportGraphData = () => {
-    const result = fluids.map((fluid) => {
-      return {
-        fluidName: fluid.name,
-
-        points: rpms.map((rpm) => {
-          const dial = fluid.dialReadings[rpm] ?? 0;
-
-          return {
-            shearRate: +(rpm * SHEAR_RATE_FACTOR).toFixed(2),
-
-            shearStress: +(dial * SHEAR_STRESS_FACTOR).toFixed(2),
-          };
-        }),
-      };
-    });
-
-    console.log(result);
-
-    alert("Graph data exported.\nCheck console.");
-  };
-
-  const resetTable = () => {
-    localStorage.removeItem(STORAGE_KEY);
-
-    setRpms(initialRpms);
-
-    setFluids([createFluid("Water")]);
-  };
-
-  useEffect(() => {
-    const payload = {
-      rpms,
-      fluids,
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  }, [rpms, fluids]);
-
   return (
     <div id="dataSheet">
       <h2>Rheology Table</h2>
-
-      {/* CONTROLS */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          marginBottom: 16,
-        }}
-      >
-        <button onClick={addFluid}>Add Fluid</button>
-
-        <button onClick={addRpm}>Add RPM</button>
-
-        <button onClick={exportGraphData}>Export Graph Data</button>
-
-        <button onClick={resetTable}>Reset</button>
-      </div>
-
-      {/* FLUID NAME INPUTS */}
-      <div
-        style={{
-          display: "flex",
-          gap: 20,
-          marginBottom: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        {fluids.map((fluid, index) => (
-          <div
-            key={fluid.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: 10,
-              borderRadius: 4,
-            }}
-          >
-            <div style={{ marginBottom: 8 }}>{fluid.name}</div>
-
-            <input
-              value={fluid.name}
-              onChange={(e) => updateFluidName(index, e.target.value)}
-            />
-
-            <button
-              onClick={() => removeFluid(fluid.id)}
-              style={{
-                marginLeft: 8,
-              }}
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-      </div>
 
       {/* TABLE */}
       <HotTable
