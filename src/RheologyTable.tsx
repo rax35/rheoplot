@@ -34,7 +34,7 @@ export default function RheologyTable({
       };
 
       fluids.forEach((fluid) => {
-        const dial = fluid.dialReadings[rpm] ?? 0;
+        const dial = fluid.dialReadings[rpm] ?? "";
 
         row[`fluid_${fluid.id}_dial`] = dial;
 
@@ -76,7 +76,7 @@ export default function RheologyTable({
   const nestedHeaders = useMemo(() => {
     return [
       [
-        "RPM",
+        { label: "RPM", rowspan: 2 },
         "Shear Rate",
         ...fluids.flatMap((fluid) => [
           {
@@ -117,13 +117,23 @@ export default function RheologyTable({
 
         const rpm = rpms[row];
 
-        updated[fluidIndex] = {
-          ...updated[fluidIndex],
-          dialReadings: {
-            ...updated[fluidIndex].dialReadings,
-            [rpm]: Number(newValue),
-          },
-        };
+        const parsedValue = Number(newValue)
+        if (newValue === "") {
+          const { [rpm]: _, ...remainingDialReadings } = updated[fluidIndex].dialReadings
+
+          updated[fluidIndex] = {
+            ...updated[fluidIndex],
+            dialReadings: remainingDialReadings
+          }
+        } else if (!Number.isNaN(parsedValue)) {
+          updated[fluidIndex] = {
+            ...updated[fluidIndex],
+            dialReadings: {
+              ...updated[fluidIndex].dialReadings,
+              [rpm]: parsedValue,
+            },
+          };
+        }
       });
 
       return updated;

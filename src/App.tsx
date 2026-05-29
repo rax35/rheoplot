@@ -47,31 +47,30 @@ const exportGraphData = (fluids: FluidData[], rpms: number[]): GraphData => {
         const dial = fluid.dialReadings[rpm];
 
         return {
-          shearRate: +(rpm * SHEAR_RATE_FACTOR).toFixed(2),
+          shearRate: +(rpm * SHEAR_RATE_FACTOR).toFixed(8),
 
-          shearStress: +(dial * SHEAR_STRESS_FACTOR).toFixed(2),
+          shearStress: +(dial * SHEAR_STRESS_FACTOR).toFixed(8),
         };
       });
 
-    let fitParams;
     let fittedPoints;
-    if (experimentalPoints.length > 2) {
-      fitParams = fitHerschelBulkley(experimentalPoints);
-      if (fitParams) {
-        fittedPoints = generateHBModelCurve(experimentalPoints, fitParams);
-        fluid.fitParams = fitParams;
-      }
+    const fitParams = fitHerschelBulkley(experimentalPoints);
+    if (fitParams) {
+      fittedPoints = generateHBModelCurve(experimentalPoints, fitParams);
     }
 
-    return {
+    const data = {
       fluidName,
+      fluidId: fluid.id,
       experimentalPoints,
-      fittedPoints,
-      fitParams,
+      ...(fittedPoints !== undefined && { fittedPoints }),
+      ...(fitParams !== undefined && { fitParams }),
     };
+
+    console.log(data)
+    return data
   });
 
-  console.log(result);
   return result;
 };
 
@@ -170,10 +169,7 @@ function App() {
     <>
       <section id="center">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
+          <h1>RheoPlot</h1>
         </div>
         {/* CONTROLS */}
         <div
@@ -228,13 +224,28 @@ function App() {
               </button>
               <br />
 
-              <label>
-                Tau0: {fluid.fitParams?.tau0.toFixed(4)}
-                <br />
-                K: {fluid.fitParams?.K.toFixed(4)}
-                <br />
-                n: {fluid.fitParams?.n.toFixed(4)}
-              </label>
+              <table>
+                <tr>
+                  <th>PV (cP)</th>
+                  <td>{fluid.dialReadings[600] - fluid.dialReadings[300]}</td>
+                </tr>
+                <tr>
+                  <th>YP (lb/100ft²)</th>
+                  <td>{(2 * fluid.dialReadings[300]) - fluid.dialReadings[600]}</td>
+                </tr>
+                <tr>
+                  <th>Tau0</th>
+                  <td>{graphData.find((data) => data.fluidId === fluid.id)?.fitParams?.tau0.toFixed(4)}</td>
+                </tr>
+                <tr>
+                  <th>K</th>
+                  <td>{graphData.find((data) => data.fluidId === fluid.id)?.fitParams?.K.toFixed(4)}</td>
+                </tr>
+                <tr>
+                  <th>n</th>
+                  <td>{graphData.find((data) => data.fluidId === fluid.id)?.fitParams?.n.toFixed(4)}</td>
+                </tr>
+              </table>
             </div>
           ))}
         </div>

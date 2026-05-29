@@ -47,8 +47,11 @@ export default function RheologyPlot({ graphData }: PlotProps) {
 
     legend: {
       orient: "vertical",
-      right: 10,
-      top: "center",
+      right: 50,
+      bottom:"center",
+      name: "Legend",
+      borderWidth:1,
+      inactiveColor: "black",
     },
 
     toolbox: {
@@ -56,27 +59,27 @@ export default function RheologyPlot({ graphData }: PlotProps) {
         saveAsImage: {},
         dataZoom: {},
         restore: {},
+        dataView: {},
       },
+      borderWidth:1,
     },
 
     xAxis: {
       type: "value",
-
       name: "Shear Rate (sec⁻¹)",
-
       nameLocation: "middle",
-
       nameGap: 30,
     },
 
     yAxis: {
       type: "value",
-
-      name: "Shear Stress lb/100ft²",
-
+      scale: true,
+      nameTextStyle: {
+        lineHeight:15
+      },
+      name: "Shear Stress\n(lb/100ft²)",
       nameLocation: "middle",
-
-      nameGap: 50,
+      nameGap: 30,
     },
 
     dataZoom: [
@@ -94,11 +97,12 @@ export default function RheologyPlot({ graphData }: PlotProps) {
       style={{
         width: "100%",
         height: "500px",
+        backgroundColor: "white"
       }}
     >
       <EChartsReact
         option={options}
-        theme={"dark"}
+        // theme={"light"}
         notMerge={true}
         style={{
           width: "100%",
