@@ -1,18 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 //import RheologyPlot from "./RheologyPlot";
 import RheologyTable from "./RheologyTable";
 import {
   initialRpms,
-  SHEAR_RATE_FACTOR,
-  SHEAR_STRESS_FACTOR,
   STORAGE_KEY,
   type FluidData,
-  type SaveData,
   type GraphData,
+  type SaveData,
 } from "./common";
 import RheologyPlot from "./RheologyPlot";
-import { fitHerschelBulkley, generateHBModelCurve } from "./regression";
 
 const loadSavedData = () => {
   try {
@@ -37,42 +34,7 @@ function createFluid(name: string): FluidData {
   };
 }
 
-const exportGraphData = (fluids: FluidData[], rpms: number[]): GraphData => {
-  const result = fluids.map((fluid) => {
-    const fluidName = fluid.name;
 
-    const experimentalPoints = rpms
-      .filter((rpm) => fluid.dialReadings[rpm] != null)
-      .map((rpm) => {
-        const dial = fluid.dialReadings[rpm];
-
-        return {
-          shearRate: +(rpm * SHEAR_RATE_FACTOR).toFixed(8),
-
-          shearStress: +(dial * SHEAR_STRESS_FACTOR).toFixed(8),
-        };
-      });
-
-    let fittedPoints;
-    const fitParams = fitHerschelBulkley(experimentalPoints);
-    if (fitParams) {
-      fittedPoints = generateHBModelCurve(experimentalPoints, fitParams);
-    }
-
-    const data = {
-      fluidName,
-      fluidId: fluid.id,
-      experimentalPoints,
-      ...(fittedPoints !== undefined && { fittedPoints }),
-      ...(fitParams !== undefined && { fitParams }),
-    };
-
-    console.log(data)
-    return data
-  });
-
-  return result;
-};
 
 function App() {
   const savedData = loadSavedData();
@@ -160,8 +122,31 @@ function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }, [rpms, fluids]);
 
-  const graphData = useMemo(
-    () => exportGraphData(fluids, rpms),
+  const workerRef = useRef<Worker | null>(null)
+  const requestIdRef = useRef(0)
+
+  const [graphData, setGraphData] = useState<GraphData | null>(null)
+  useEffect(() => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(
+        new URL("./worker.ts", import.meta.url), { type: "module" }
+      )
+    }
+
+    const currentRequestId = ++requestIdRef.current
+
+    workerRef.current.postMessage({ requestId: currentRequestId, fluids, rpms })
+
+    workerRef.current.onmessage = (e) => {
+      const { requestId, result } = e.data
+
+      if (requestId !== requestIdRef.current) {
+        return
+      }
+
+      setGraphData(result)
+    }
+  },
     [rpms, fluids],
   );
 
@@ -235,15 +220,15 @@ function App() {
                 </tr>
                 <tr>
                   <th>Tau0</th>
-                  <td>{graphData.find((data) => data.fluidId === fluid.id)?.fitParams?.tau0.toFixed(4)}</td>
+                  <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.tau0.toFixed(4)}</td>
                 </tr>
                 <tr>
                   <th>K</th>
-                  <td>{graphData.find((data) => data.fluidId === fluid.id)?.fitParams?.K.toFixed(4)}</td>
+                  <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.K.toFixed(4)}</td>
                 </tr>
                 <tr>
                   <th>n</th>
-                  <td>{graphData.find((data) => data.fluidId === fluid.id)?.fitParams?.n.toFixed(4)}</td>
+                  <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.n.toFixed(4)}</td>
                 </tr>
               </table>
             </div>
