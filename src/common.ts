@@ -1,4 +1,4 @@
-export const SHEAR_RATE_FACTOR = 1.023;
+export const SHEAR_RATE_FACTOR = 1.7023;
 export const SHEAR_STRESS_FACTOR = 1.065;
 
 export const STORAGE_KEY = "rheology-table";

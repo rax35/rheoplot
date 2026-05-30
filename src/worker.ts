@@ -40,7 +40,11 @@ function exportGraphData(fluids: FluidData[], rpms: number[]): GraphData {
 };
 
 
-self.onmessage = (e) => {
+self.onmessage = (e: MessageEvent<{
+  requestId: number,
+  fluids: FluidData[],
+  rpms: number[]
+}>) => {
   const { requestId, fluids, rpms } = e.data
 
   const result = exportGraphData(fluids, rpms)

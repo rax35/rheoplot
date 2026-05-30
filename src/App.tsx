@@ -127,17 +127,18 @@ function App() {
 
   const [graphData, setGraphData] = useState<GraphData | null>(null)
   useEffect(() => {
-    if (!workerRef.current) {
-      workerRef.current = new Worker(
-        new URL("./worker.ts", import.meta.url), { type: "module" }
-      )
-    }
+    workerRef.current ??= new Worker(
+      new URL("./worker.ts", import.meta.url), { type: "module" }
+    )
 
     const currentRequestId = ++requestIdRef.current
 
     workerRef.current.postMessage({ requestId: currentRequestId, fluids, rpms })
 
-    workerRef.current.onmessage = (e) => {
+    workerRef.current.onmessage = (e: MessageEvent<{
+      requestId: number,
+      result: GraphData
+    }>) => {
       const { requestId, result } = e.data
 
       if (requestId !== requestIdRef.current) {
@@ -154,7 +155,7 @@ function App() {
     <>
       <section id="center">
         <div>
-          <h1>RheoPlot</h1>
+          <h1>RheoPlot</h1>v1.0
         </div>
         {/* CONTROLS */}
         <div
@@ -219,7 +220,7 @@ function App() {
                   <td>{(2 * fluid.dialReadings[300]) - fluid.dialReadings[600]}</td>
                 </tr>
                 <tr>
-                  <th>Tau0</th>
+                  <th>Tau0 (τ₀)</th>
                   <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.tau0.toFixed(4)}</td>
                 </tr>
                 <tr>
