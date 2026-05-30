@@ -196,34 +196,40 @@ function App() {
               <br />
 
               <table>
-                <tr>
-                  <th>PV (cP)</th>
-                  <td>{fluid.dialReadings[600] - fluid.dialReadings[300]}</td>
-                </tr>
-                <tr>
-                  <th>YP (lb/100ft²)</th>
-                  <td>{2 * fluid.dialReadings[300] - fluid.dialReadings[600]}</td>
-                </tr>
-                <tr>
-                  <th>Tau0 (τ₀)</th>
-                  <td>
-                    {graphData
-                      ?.find((data) => data.fluidId === fluid.id)
-                      ?.fitParams?.tau0.toFixed(4)}
-                  </td>
-                </tr>
-                <tr>
-                  <th>K</th>
-                  <td>
-                    {graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.K.toFixed(4)}
-                  </td>
-                </tr>
-                <tr>
-                  <th>n</th>
-                  <td>
-                    {graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.n.toFixed(4)}
-                  </td>
-                </tr>
+                <tbody>
+                  <tr>
+                    <th>PV (cP)</th>
+                    <td>{fluid.dialReadings[600] - fluid.dialReadings[300]}</td>
+                  </tr>
+                  <tr>
+                    <th>YP (lb/100ft²)</th>
+                    <td>{2 * fluid.dialReadings[300] - fluid.dialReadings[600]}</td>
+                  </tr>
+                  <tr>
+                    <th>Tau0 (τ₀)</th>
+                    <td>
+                      {graphData
+                        ?.find((data) => data.fluidId === fluid.id)
+                        ?.fitParams?.tau0.toFixed(4)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>K</th>
+                    <td>
+                      {graphData
+                        ?.find((data) => data.fluidId === fluid.id)
+                        ?.fitParams?.K.toFixed(4)}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>n</th>
+                    <td>
+                      {graphData
+                        ?.find((data) => data.fluidId === fluid.id)
+                        ?.fitParams?.n.toFixed(4)}
+                    </td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           ))}
