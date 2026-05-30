@@ -2,13 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 //import RheologyPlot from "./RheologyPlot";
 import RheologyTable from "./RheologyTable";
-import {
-  initialRpms,
-  STORAGE_KEY,
-  type FluidData,
-  type GraphData,
-  type SaveData,
-} from "./common";
+import { initialRpms, STORAGE_KEY, type FluidData, type GraphData, type SaveData } from "./common";
 import RheologyPlot from "./RheologyPlot";
 
 const loadSavedData = () => {
@@ -34,22 +28,15 @@ function createFluid(name: string): FluidData {
   };
 }
 
-
-
 function App() {
   const savedData = loadSavedData();
 
   const [rpms, setRpms] = useState(savedData?.rpms ?? initialRpms);
 
-  const [fluids, setFluids] = useState(
-    () => savedData?.fluids ?? [createFluid("Water")],
-  );
+  const [fluids, setFluids] = useState(() => savedData?.fluids ?? [createFluid("Water")]);
 
   const addFluid = () => {
-    setFluids((prevFluids) => [
-      ...prevFluids,
-      createFluid(`Fluid ${prevFluids.length + 1}`),
-    ]);
+    setFluids((prevFluids) => [...prevFluids, createFluid(`Fluid ${prevFluids.length + 1}`)]);
   };
 
   const removeFluid = (fluidID: ReturnType<Crypto["randomUUID"]>) => {
@@ -122,34 +109,32 @@ function App() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }, [rpms, fluids]);
 
-  const workerRef = useRef<Worker | null>(null)
-  const requestIdRef = useRef(0)
+  const workerRef = useRef<Worker | null>(null);
+  const requestIdRef = useRef(0);
 
-  const [graphData, setGraphData] = useState<GraphData | null>(null)
+  const [graphData, setGraphData] = useState<GraphData | null>(null);
   useEffect(() => {
-    workerRef.current ??= new Worker(
-      new URL("./worker.ts", import.meta.url), { type: "module" }
-    )
+    workerRef.current ??= new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
 
-    const currentRequestId = ++requestIdRef.current
+    const currentRequestId = ++requestIdRef.current;
 
-    workerRef.current.postMessage({ requestId: currentRequestId, fluids, rpms })
+    workerRef.current.postMessage({ requestId: currentRequestId, fluids, rpms });
 
-    workerRef.current.onmessage = (e: MessageEvent<{
-      requestId: number,
-      result: GraphData
-    }>) => {
-      const { requestId, result } = e.data
+    workerRef.current.onmessage = (
+      e: MessageEvent<{
+        requestId: number;
+        result: GraphData;
+      }>,
+    ) => {
+      const { requestId, result } = e.data;
 
       if (requestId !== requestIdRef.current) {
-        return
+        return;
       }
 
-      setGraphData(result)
-    }
-  },
-    [rpms, fluids],
-  );
+      setGraphData(result);
+    };
+  }, [rpms, fluids]);
 
   return (
     <>
@@ -217,30 +202,33 @@ function App() {
                 </tr>
                 <tr>
                   <th>YP (lb/100ft²)</th>
-                  <td>{(2 * fluid.dialReadings[300]) - fluid.dialReadings[600]}</td>
+                  <td>{2 * fluid.dialReadings[300] - fluid.dialReadings[600]}</td>
                 </tr>
                 <tr>
                   <th>Tau0 (τ₀)</th>
-                  <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.tau0.toFixed(4)}</td>
+                  <td>
+                    {graphData
+                      ?.find((data) => data.fluidId === fluid.id)
+                      ?.fitParams?.tau0.toFixed(4)}
+                  </td>
                 </tr>
                 <tr>
                   <th>K</th>
-                  <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.K.toFixed(4)}</td>
+                  <td>
+                    {graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.K.toFixed(4)}
+                  </td>
                 </tr>
                 <tr>
                   <th>n</th>
-                  <td>{graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.n.toFixed(4)}</td>
+                  <td>
+                    {graphData?.find((data) => data.fluidId === fluid.id)?.fitParams?.n.toFixed(4)}
+                  </td>
                 </tr>
               </table>
             </div>
           ))}
         </div>
-        <RheologyTable
-          rpms={rpms}
-          fluids={fluids}
-          setFluids={setFluids}
-          removeRpm={removeRpm}
-        />
+        <RheologyTable rpms={rpms} fluids={fluids} setFluids={setFluids} removeRpm={removeRpm} />
 
         <section id="spacer"></section>
 

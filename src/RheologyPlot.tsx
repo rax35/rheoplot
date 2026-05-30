@@ -15,10 +15,7 @@ export default function RheologyPlot({ graphData }: PlotProps) {
     type: "scatter",
     smooth: false,
     symbolSize: 8,
-    data: fluid.experimentalPoints.map((point) => [
-      point.shearRate,
-      point.shearStress,
-    ]),
+    data: fluid.experimentalPoints.map((point) => [point.shearRate, point.shearStress]),
   }));
 
   graphData.forEach((fluid) => {
@@ -48,9 +45,9 @@ export default function RheologyPlot({ graphData }: PlotProps) {
     legend: {
       orient: "vertical",
       right: 50,
-      bottom:"center",
+      bottom: "center",
       name: "Legend",
-      borderWidth:1,
+      borderWidth: 1,
       inactiveColor: "black",
     },
 
@@ -61,7 +58,7 @@ export default function RheologyPlot({ graphData }: PlotProps) {
         restore: {},
         dataView: {},
       },
-      borderWidth:1,
+      borderWidth: 1,
     },
 
     xAxis: {
@@ -75,7 +72,7 @@ export default function RheologyPlot({ graphData }: PlotProps) {
       type: "value",
       scale: true,
       nameTextStyle: {
-        lineHeight:15
+        lineHeight: 15,
       },
       name: "Shear Stress\n(lb/100ft²)",
       nameLocation: "middle",
@@ -97,7 +94,7 @@ export default function RheologyPlot({ graphData }: PlotProps) {
       style={{
         width: "100%",
         height: "500px",
-        backgroundColor: "white"
+        backgroundColor: "white",
       }}
     >
       <EChartsReact

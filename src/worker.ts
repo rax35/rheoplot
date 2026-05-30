@@ -1,7 +1,6 @@
 import { fminsearchFit, generateHBModelCurve } from "./regression";
 import { SHEAR_RATE_FACTOR, SHEAR_STRESS_FACTOR, type FluidData, type GraphData } from "./common";
 
-
 function exportGraphData(fluids: FluidData[], rpms: number[]): GraphData {
   const result = fluids.map((fluid) => {
     const fluidName = fluid.name;
@@ -32,24 +31,26 @@ function exportGraphData(fluids: FluidData[], rpms: number[]): GraphData {
       ...(fitParams !== undefined && { fitParams }),
     };
 
-    console.log(data)
-    return data
+    console.log(data);
+    return data;
   });
 
   return result;
-};
+}
 
+self.onmessage = (
+  e: MessageEvent<{
+    requestId: number;
+    fluids: FluidData[];
+    rpms: number[];
+  }>,
+) => {
+  const { requestId, fluids, rpms } = e.data;
 
-self.onmessage = (e: MessageEvent<{
-  requestId: number,
-  fluids: FluidData[],
-  rpms: number[]
-}>) => {
-  const { requestId, fluids, rpms } = e.data
-
-  const result = exportGraphData(fluids, rpms)
+  const result = exportGraphData(fluids, rpms);
 
   self.postMessage({
-    requestId, result
-  })
-}
+    requestId,
+    result,
+  });
+};

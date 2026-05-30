@@ -1,21 +1,17 @@
 import type { DataPoint, HerschelBulkleyFitParams } from "./common";
-import { fminsearch } from "./fminsearch"
+import { fminsearch } from "./fminsearch";
 
-const rheoModel = function(x: number[], [tau0, K, n]: number[]) {
+const rheoModel = function (x: number[], [tau0, K, n]: number[]) {
   const safeK = Math.max(K, 1e-6);
 
   const safeN = Math.max(n, 1e-6);
-  return x.map(
-    function(xi) {
-      return (tau0 + safeK * Math.pow(xi, safeN))
-    }
-  )
-}
+  return x.map(function (xi) {
+    return tau0 + safeK * Math.pow(xi, safeN);
+  });
+};
 
 export function fminsearchFit(points: DataPoint[]): HerschelBulkleyFitParams | undefined {
-  const filtered = points.filter(
-    (p) => p.shearRate > 0 && Number.isFinite(p.shearStress),
-  );
+  const filtered = points.filter((p) => p.shearRate > 0 && Number.isFinite(p.shearStress));
 
   if (filtered.length < 3) {
     return;
@@ -25,10 +21,10 @@ export function fminsearchFit(points: DataPoint[]): HerschelBulkleyFitParams | u
 
   const y = filtered.map((p) => p.shearStress);
   const [tau0, K, n] = fminsearch(rheoModel, [1, 1, 1], x, y, {
-    maxIter: 100000
-  })
+    maxIter: 100000,
+  });
 
-  return { tau0, K, n }
+  return { tau0, K, n };
 }
 
 export function generateHBModelCurve(

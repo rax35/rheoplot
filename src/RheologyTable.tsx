@@ -3,11 +3,7 @@ import "./RheologyTable.css";
 import { registerAllModules } from "handsontable/registry";
 import React, { useMemo, useRef } from "react";
 import type { Events } from "handsontable";
-import {
-  SHEAR_RATE_FACTOR,
-  SHEAR_STRESS_FACTOR,
-  type FluidData,
-} from "./common";
+import { SHEAR_RATE_FACTOR, SHEAR_STRESS_FACTOR, type FluidData } from "./common";
 
 registerAllModules();
 
@@ -17,12 +13,7 @@ interface TableProps {
   setFluids: React.Dispatch<React.SetStateAction<FluidData[]>>;
   removeRpm: (rpmToRemove: number) => void;
 }
-export default function RheologyTable({
-  rpms,
-  fluids,
-  setFluids,
-  removeRpm,
-}: TableProps) {
+export default function RheologyTable({ rpms, fluids, setFluids, removeRpm }: TableProps) {
   const hotRef = useRef(null);
 
   const tableData = useMemo(() => {
@@ -38,9 +29,7 @@ export default function RheologyTable({
 
         row[`fluid_${fluid.id}_dial`] = dial;
 
-        row[`fluid_${fluid.id}_stress`] = +(dial * SHEAR_STRESS_FACTOR).toFixed(
-          3,
-        );
+        row[`fluid_${fluid.id}_stress`] = +(dial * SHEAR_STRESS_FACTOR).toFixed(3);
       });
 
       return row;
@@ -90,10 +79,7 @@ export default function RheologyTable({
         "",
         "(sec⁻¹)",
 
-        ...fluids.flatMap(() => [
-          "Dial Readings<br>°Fann",
-          "Shear Stress<br>lb/100ft²",
-        ]),
+        ...fluids.flatMap(() => ["Dial Readings<br>°Fann", "Shear Stress<br>lb/100ft²"]),
       ],
     ];
   }, [fluids]);
@@ -117,14 +103,14 @@ export default function RheologyTable({
 
         const rpm = rpms[row];
 
-        const parsedValue = Number(newValue)
+        const parsedValue = Number(newValue);
         if (newValue === "") {
-          const { [rpm]: _, ...remainingDialReadings } = updated[fluidIndex].dialReadings
+          const { [rpm]: _, ...remainingDialReadings } = updated[fluidIndex].dialReadings;
 
           updated[fluidIndex] = {
             ...updated[fluidIndex],
-            dialReadings: remainingDialReadings
-          }
+            dialReadings: remainingDialReadings,
+          };
         } else if (!Number.isNaN(parsedValue)) {
           updated[fluidIndex] = {
             ...updated[fluidIndex],

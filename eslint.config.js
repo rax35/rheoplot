@@ -28,9 +28,9 @@ export default defineConfig([
         "error",
         {
           varsIgnorePattern: "^_",
-          argsIgnorePattern: "^_"
-        }
-      ]
+          argsIgnorePattern: "^_",
+        },
+      ],
     },
     languageOptions: {
       parserOptions: {
